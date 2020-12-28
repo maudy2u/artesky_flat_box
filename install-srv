@@ -17,11 +17,11 @@ if [ $# -eq 0 ]
 fi
 
 IP=${1}
-SRVC_NAME=artesky_flat
+SRVC_NAME=artesky_flatbox
 SRVC=${SRVC_NAME}.service
 SRVC_DIR=${HOME}'/.config/systemd/user'
 SRVC_FILE=${SRVC_DIR}/${SRVC}
-SRVC_AUTOSTART=${HOME}'/.config/autostart/'${SRVC}.desktop
+SRVC_AUTOSTART=${HOME}'/.config/autostart/'${SRVC_NAME}.desktop
 
 
 install_dir=$(pwd)
