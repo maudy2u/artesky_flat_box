@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=tsx_cmd
-Exec=systemctl --user start artesky_flat.service
+Name=artesky_flatbox
+Exec=systemctl --user start artesky_flatbox.service
 X-MATE-Autostart-enabled=true
 X-GNOME-Autostart-enabled=true

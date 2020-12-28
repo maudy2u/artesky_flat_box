@@ -1,19 +1,20 @@
-# SOME EXAMPLE INSTALL STEPS
-# sudo cp artesky_flat.service /etc/systemd/system/
-# sudo chmod 644 /etc/systemd/system/artesky_flat.service
-# sudo systemctl daemon-reload
-# sudo systemctl enable artesky_flat.service
-# sudo systemctl start artesky_flat.service
-# sudo systemctl status artesky_flat.service
 [Unit]
 Description=Artesky Flatbox server
 After=multi-user.target syslog.target network.target remote-fs.target
 
 [Service]
 Type=idle
-ExecStart=/usr/local/bin/artesky_srv --ip 10.9.8.34
+PIDFile=/var/run/artesky_srv.pid
+WorkingDirectory=/home/odroid/src/artesky_flat_box/bin
+
+ExecStartPre=/bin/rm -f /var/run/artesky_srv.pid
+ExecStart=/home/odroid/src/artesky_flat_box/bin/artesky_srv --ip 192.168.0.1
+
 Restart=always
-RestartSec=5
+RestartSec=10
+
+ExecStop=/bin/kill -s QUIT $MAINPID
+KillSignal=SIGKILL
 
 [Install]
 WantedBy=multi-user.target
