@@ -102,7 +102,7 @@ cd ${install_dir}
 
 printf "\n[-] Some clean up\n\n"
 rm ./artesky_binaries.tar.xz
-rm -rf ./bin/translations ./libartesky_SDK ./plugin ./src ./artesky-flat
+rm -rf ./bin/translations ./libartesky_SDK ./plugin ./src ./artesky-flat ./git ./install-srv
 sudo apt remove -y libboost-dev
 
 printf "\n[-] Create User Service File and start\n\n"
