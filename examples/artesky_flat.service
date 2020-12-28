@@ -7,12 +7,10 @@
 # sudo systemctl status artesky_flat.service
 [Unit]
 Description=Artesky Flatbox server
-After=multi-user.target
+After=multi-user.target syslog.target network.target remote-fs.target
 
 [Service]
 Type=idle
-# MUST SET YOUR USERNAME HERE.
-User=odroid
 ExecStart=/usr/local/bin/artesky_srv --ip 10.9.8.34
 Restart=always
 RestartSec=5
