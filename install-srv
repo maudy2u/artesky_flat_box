@@ -106,6 +106,8 @@ rm -rf ./bin/translations ./libartesky_SDK ./plugin ./src ./artesky-flat ./git .
 sudo apt remove -y libboost-dev
 
 printf "\n[-] Create User Service File and start\n\n"
+mkdir -p ~/.config/autostart
+mkdir -p ~/.config/systemd/user
 install.service.file
 install.autostart.file
 
