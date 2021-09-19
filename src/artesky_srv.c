@@ -80,71 +80,85 @@ struct InvalidChar
 };
 
 // http://www.cplusplus.com/articles/DEN36Up4/
-static void show_usage(std::string name)
+static void show_usage(std::string name, std::string _srv_version)
 {
-	std::cerr << "Usage: " << name<<endl
-	<< "\t--ip IP_ADDRESS"<<endl
+	std::cerr <<endl
+	<< "***************************" <<endl
+	<< "Artesky Flatbox Server version " << _srv_version <<endl
+	<< "Usage: " << name <<endl
+	<< "\t--ip IP_ADDRESS for the server"<<endl
+	<< "\t--device DEVICE_ID, e.g. ttyACM0"<<endl
+	<< "***************************" <<endl
 	<< std::endl;
 }
 
 // *****************************************************
 int main( int argc, char** argv ) {
-	
-	if (argc < 3) { // filename = 1
-		show_usage(argv[0]);
-		return 1;
-	}
-	
+
 	// =======================
 	// Prep for artesky_srv
 	int c, newsockfd;
-	
+
 	std::string hostName = "127.0.0.1";
-	
+	std::string _serialPort = "ttyACM0";
+	std::string _srv_version = "1.1";
+	std::string _version = "";
+
+	if (argc < 5) { // filename = 1
+		show_usage(argv[0], _srv_version );
+		return 1;
+	}
+
 	int digit_optind = 0;
 	int this_option_optind = optind ? optind : 1;
 	int option_index = 0;
 	static struct option long_options[] = {
 		{"ip",    required_argument,  0,  'h' },
+		{"device",    required_argument,  0,  'd' },
 		{0,       0,                  0,  0 }
 	};
-	
-	c = getopt_long(argc, argv, "h:?",
-					long_options, &option_index);
-	if (c == -1) {
-		
-		
-		return 1;
-	}
-	
-	// Process the command line
-	switch (c) {
-		case 0:
-			printf("option %s", _long_options[option_index].name);
-			if (optarg)
-				printf(" with arg %s", optarg);
-			printf("\n");
-			break;
-			
-		case '0':
-		case '1':
-		case '2':
-			if (digit_optind != 0 && digit_optind != this_option_optind)
-				printf("digits occur in two different argv-elements.\n");
-			digit_optind = this_option_optind;
-			printf("option %c\n", c);
-			break;
-		case 'h':
-			printf("Setting host: '%s'\n", optarg);
-			hostName=optarg;
-			break;
-		case '?':
-			show_usage(argv[0]);
+
+	while (1) {
+		c = getopt_long(argc, argv, "h:?",
+						long_options, &option_index);
+		if (c == -1)
 			break;
 
-		default:
-			// keep hostName="127.0.0.1";
-			return 1;
+		// Process the command line
+		switch (c) {
+			case 0:
+				printf("option %s", _long_options[option_index].name);
+				if (optarg)
+					printf(" with arg %s", optarg);
+				printf("\n");
+				break;
+
+			case '0':
+			case '1':
+			case '2':
+				if (digit_optind != 0 && digit_optind != this_option_optind)
+					printf("digits occur in two different argv-elements.\n");
+				digit_optind = this_option_optind;
+				printf("option %c\n", c);
+				break;
+			case 'h':
+				printf("Setting host: '%s'\n", optarg);
+				hostName=optarg;
+				break;
+			case 'd':
+				cout<<"Setting --device "<<optarg<<endl;
+				_serialPort = optarg;
+				break;
+			case '?':
+				show_usage(argv[0], _srv_version );
+				break;
+
+			default:
+				// keep hostName="127.0.0.1";
+				return 1;
+		}
+		cout << "***************************" << endl;
+
 	}
 	if (optind < argc) {
 		printf("non-option ARGV-elements: ");
@@ -153,7 +167,7 @@ int main( int argc, char** argv ) {
 		printf("\n");
 		return 1;
 	}
-	
+
 	// *******************************
 	// Artesky specifics
 	ASL_ERROR ret = ASL_NO_ERROR;
@@ -161,17 +175,13 @@ int main( int argc, char** argv ) {
 	bool _status = false;
 	bool _isConnected = false;
 	uint32_t _level = 0;
-	
-	std::string _serialPort = "ttyARTESKYFLAT";
-	std::string _srv_version = "1.0";
-	std::string _version = "";
-	
+
 #ifdef _WIN32
 	system("CLS");
 #elif __linux
 	system("clear");
 #endif // _WIN32
-	
+
 	cout << "***************************" << endl;
 	// Setup the TCP socket
 	portno = 5570;
@@ -190,10 +200,10 @@ int main( int argc, char** argv ) {
 		cout<<"ERROR on binding"<<endl;
 		return 10;
 	}
-	cout<<"Artesky Server: " << inet_ntoa(serv_addr.sin_addr) << ", port " <<serv_addr.sin_port << endl;
+	cout<<"Artesky Server: " << inet_ntoa(serv_addr.sin_addr) << ", port " <<serv_addr.sin_port << ", device: " << _serialPort << endl;
 	listen(sockfd, 5);
 	clilen = sizeof(cli_addr);
-	
+
 	// accept function is called whose purpose is to accept the client request and
 	// return
 	int EXIT=0;
@@ -207,12 +217,12 @@ int main( int argc, char** argv ) {
 		else {
 			std:string cmds = Communication_recv(newsockfd,256);
 			cout<<endl<<"========RECEIVED NEW COMMANDS========"<<endl;
-			
+
 			// https://stackoverflow.com/questions/5607589/right-way-to-split-an-stdstring-into-a-vectorstring
 			// put buffer into a vector(should be able to remove this and go to Vector directly)
 			std::vector<std::string> str_v;
 			boost::split(str_v, cmds, boost::is_any_of(_whitespaces), boost::token_compress_on);
-			
+
 /*
 		// https://stackoverflow.com/questions/7048888/stdvectorstdstring-to-char-array
 			// Convert the vector to use with getopt_long
@@ -237,13 +247,12 @@ int main( int argc, char** argv ) {
 //					<<"1. \'"<<str_v[1]<<"\'"<<str_v[1].size()<<endl;
 //			}
 			oss<<"Processed:"<<endl;
-			cout<<oss.str();
 			// std::vector<string>::iterator it_c;  // declare an iterator to a vector of strings
 			for(int i=0; i<str_v.size(); i++) {
 				std::stringstream ocmd;
 				std::string cmd = str_v[i];
 				cmd.erase(remove_if(cmd.begin(), cmd.end(), [](char c) { return !isprint(c); } ), cmd.end());
-				cout<<i+1<<". "<<cmd<<", ";
+				//cout<<i+1<<". "<<cmd<<", ";
 				oss<<"\t"<<i+1<<". "<<cmd<<":\t";
 				if( boost::iequals(cmd," ") ){
 				}
@@ -376,8 +385,9 @@ int main( int argc, char** argv ) {
 		n = write(newsockfd, success.data(), success.size());
 		if (n < 0)
 			error("ERROR writing to socket");
-		
+
 		close(newsockfd);
+		cout<<success;
 		if( EXIT ) {
 			break;
 		}
