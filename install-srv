@@ -3,20 +3,21 @@
 # ifconfig eth0 | grep inet | grep -v inet6 | awk '{print $2}'
 # need to specify the network interface to use, e.g: eth0
 
-if [ $# -eq 0 ]
+if [ $# -eq 0 ] || [ $# -lt 2 ]
   then
     echo ""
     echo " *******************************"
-    echo " Install Artesky_srv v2.0"
+    echo " Install Artesky_srv v2.1"
     echo " *******************************"
 		echo ": "
-		echo ": Requires one parameter - the IP of the host server"
+		echo ": Requires two parameters - the IP of the host server, and the device to use"
     echo ": e.g."
-    echo ": install_artesky_srv.sh 192.168.0.1"
+    echo ": install_artesky_srv.sh 192.168.0.1 ttyACM0"
 		exit 1
 fi
 
 IP=${1}
+DEVICE=${2}
 SRVC_NAME=artesky_flatbox
 SRVC=${SRVC_NAME}.service
 SRVC_DIR=${HOME}'/.config/systemd/user'
@@ -42,7 +43,7 @@ install.autostart.file() {
 install.service.file() {
   echo ""
   echo " *******************************"
-  echo " Install service: "${SRVC_FILE}
+  echo " Install service: "${SRVC_FILE}" with IP "${IP}" and device "${DEVICE}
   echo " *******************************"
   echo '' > ${SRVC_FILE}
   echo '[Unit]' >> ${SRVC_FILE}
@@ -58,7 +59,7 @@ install.service.file() {
   # https://askubuntu.com/questions/1063153/systemd-service-working-directory-not-change-the-directory
   echo '' >> ${SRVC_FILE}
   echo 'ExecStartPre=/bin/rm -f /var/run/artesky_srv.pid' >> ${SRVC_FILE}
-  echo 'ExecStart='${install_dir}'/bin/artesky_srv --ip '${IP}'' >> ${SRVC_FILE}
+  echo 'ExecStart='${install_dir}'/bin/artesky_srv  --ip '${IP}' --device '${DEVICE} >> ${SRVC_FILE}
   echo '' >> ${SRVC_FILE}
   echo 'Restart=always' >> ${SRVC_FILE}
   echo 'RestartSec=10' >> ${SRVC_FILE}
@@ -95,7 +96,6 @@ tar -xf artesky_binaries.tar.xz
 
 printf "\n[-] Make artesky_srv\n\n"
 cd ${install_dir}/src
-#export LD_LIBRARY_PATH=${install_dir}'/artesky_flatbox/lib:'$LD_LIBRARY_PATH'"'
 make server
 mv ./artesky_srv ../bin/artesky_srv
 cd ${install_dir}
